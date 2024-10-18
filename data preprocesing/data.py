@@ -62,7 +62,7 @@ def create_3d_plot(sheet_data, sheet_name):
 
 def main():
     # 设置文件路径
-    file_path = '1728528473034.xlsx'
+    file_path = os.path.join('..', 'data_base.xlsx')
 
     # 定义sheet名称
     sheet_names = ['CVAF', 'CVAR', 'HFF', 'HDF']
