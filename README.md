@@ -1,6 +1,6 @@
 # Awesome Prediction Project
 
-This project is designed for quick data preprocessing and linear regression analysis using Python. It includes scripts for generating interactive 3D visualizations and performing regression analysis on a dataset, leveraging libraries like `pandas`, `plotly`, and `scikit-learn`.
+This project is designed for quick data preprocessing and regression analysis using Python. It includes scripts for generating interactive 3D visualizations and performing various regression techniques (linear, ridge) on a dataset, leveraging libraries like `pandas`, `plotly`, and `scikit-learn`.
 
 ## Repository Structure
 - **data preprocessing/data.py**: 
@@ -11,7 +11,12 @@ This project is designed for quick data preprocessing and linear regression anal
 - **regression analysis/LinearRegression.py**: 
   - Performs linear regression on the data.
   - Uses `scikit-learn` to predict `M1` based on `Qv`, `DP`, and `RPM`.
-  - Outputs model performance metrics, including R² and MSE, and saves results.
+  - Outputs model performance metrics (R², MSE) and saves results.
+
+- **regression analysis/RidgeRegression.py**: 
+  - Implements Ridge Regression (L2 regularization) to improve prediction by reducing overfitting.
+  - Similar structure to `LinearRegression.py`, but includes regularization parameter tuning.
+  - Outputs R², MSE, and optimized Ridge model results.
 
 ## Dependencies
 - Python 3.x
@@ -22,4 +27,4 @@ This project is designed for quick data preprocessing and linear regression anal
 
 Install dependencies via:
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
