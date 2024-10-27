@@ -2,8 +2,10 @@ import os
 import pandas as pd
 import numpy as np
 from sklearn.kernel_ridge import KernelRidge
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import StandardScaler
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill
 
 def kernel_ridge_regression(train_data, test_data):
     X_train = train_data[['Qv', 'DP', 'RPM']]
@@ -24,9 +26,8 @@ def kernel_ridge_regression(train_data, test_data):
     # 预测并计算指标
     y_pred = model.predict(X_test_scaled)
     mse = mean_squared_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
 
-    return mse, r2
+    return mse
 
 def main():
     # 设置文件路径
@@ -38,37 +39,44 @@ def main():
     sheet_names = ['CVAF', 'CVAR', 'HFF', 'HDF']
 
     # 读取所有数据
-    all_data = {}
-    train_data = pd.DataFrame()
+    all_data = pd.DataFrame()
     for sheet_name in sheet_names:
         df = pd.read_excel(file_path, sheet_name=sheet_name)
-        types = df['type'].unique().tolist()
-        all_data[sheet_name] = {t: df[df['type'] == t] for t in types}
-        train_data = pd.concat([train_data, df])
+        df['Sheet'] = sheet_name
+        all_data = pd.concat([all_data, df])
 
-    # 准备结果数据框
-    results = []
+    # 创建一个新的Excel工作簿
+    wb = Workbook()
+    wb.remove(wb.active)  # 删除默认创建的sheet
 
-    # 遍历每个sheet和type作为测试集
-    for test_sheet in sheet_names:
-        for test_type in all_data[test_sheet].keys():
-            # 准备测试集
-            test_data = all_data[test_sheet][test_type]
+    # 遍历每个sheet
+    for sheet_name in sheet_names:
+        sheet_data = all_data[all_data['Sheet'] == sheet_name].copy()
+        ws = wb.create_sheet(sheet_name)
+
+        # 添加表头
+        headers = list(sheet_data.columns) + ['MSE']
+        ws.append(headers)
+
+        # 遍历每一行数据作为测试集
+        for idx, row in sheet_data.iterrows():
+            test_data = pd.DataFrame([row])
+            train_data = all_data[all_data.index != idx]
 
             # 执行内核岭回归分析
-            mse, r2 = kernel_ridge_regression(train_data, test_data)
+            mse = kernel_ridge_regression(train_data, test_data)
 
-            # 存储结果
-            results.append({
-                'Sheet': test_sheet,
-                'Type': test_type,
-                'MSE': mse,
-                'R2': r2
-            })
+            # 将结果添加到工作表中
+            result_row = list(row) + [mse]
+            ws.append(result_row)
 
-    # 将结果转换为DataFrame并保存到Excel
-    results_df = pd.DataFrame(results)
-    results_df.to_excel(output_path, index=False)
+            # 如果MSE大于16，将整行标记为红色
+            if mse > 16:
+                for cell in ws[ws.max_row]:
+                    cell.fill = PatternFill(start_color="FFFF0000", end_color="FFFF0000", fill_type="solid")
+
+    # 保存结果
+    wb.save(output_path)
     print(f"结果已保存到 {output_path}")
 
 if __name__ == "__main__":
